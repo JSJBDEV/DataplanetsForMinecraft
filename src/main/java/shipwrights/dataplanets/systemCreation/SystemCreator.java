@@ -77,10 +77,16 @@ public class SystemCreator {
         RegistryUtil.registerLevelStem(context.server, ResourceLocation.fromNamespaceAndPath(MOD_ID, planetData.name()), stem, context.serverPhase);
 
         Celestial celestial = new Celestial(
-                new OrbitingTransformProvider(ResourceLocation.tryParse("genesis:sun"),4443,planetData.distanceFromStar(),planetData.orbitalPeriod(),24000),
+                new OrbitingTransformProvider(
+                        ResourceLocation.tryParse("genesis:sun"),
+                        4443,
+                        planetData.distanceFromStar() * 15_000,
+                        planetData.orbitalPeriod() * 4_608_000,
+                        24000
+                ),
                 ResourceLocation.fromNamespaceAndPath("dataplanets",planetData.name()),
                 BuiltinCelestialTypes.BODY,
-                planetData.size(),
+                planetData.size() * 96,
                 planetData.gravity(),
                 planetData.color().red(),
                 planetData.color().green(),

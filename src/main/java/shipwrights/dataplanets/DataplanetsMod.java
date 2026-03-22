@@ -1,19 +1,26 @@
 package shipwrights.dataplanets;
 
 import com.tterrag.registrate.Registrate;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.PacketDistributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import shipwrights.dataplanets.mixin.MinecraftServerAccessor;
 import shipwrights.dataplanets.registry.DPBlocks;
 import shipwrights.dataplanets.registry.DPItems;
+import shipwrights.dataplanets.runtimeRegistration.PlanetTexturerPacket;
 import shipwrights.dataplanets.systemCreation.PlanetData;
 import shipwrights.dataplanets.systemCreation.PlanetSource;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
@@ -48,13 +55,28 @@ public class DataplanetsMod {
     }
 
     @SubscribeEvent
-    public static void onServerAboutToStart(ServerAboutToStartEvent event) {
-        MinecraftServer server = event.getServer();
+    public static void playerJoins(PlayerEvent.PlayerLoggedInEvent event) {
 
-        RegistryUtil.setupDatapackFolder(server);
+        GenesisMod.SPACE_REGISTRY.getAll().forEach(a->
+        {
+            if(a.ID().getNamespace().equals("dataplanets"))
+            {
+                CompoundTag tag = new CompoundTag();
+                tag.putString("name",a.ID().getPath());
+                tag.put("state", NbtUtils.writeBlockState(Blocks.STONE.defaultBlockState()));
 
-
-
+                PlanetTexturerPacket packet = new PlanetTexturerPacket(tag);
+                DPPackets.sendToAll(DPPackets.INSTANCE,packet);
+            }
+        });
 
     }
+
+    @SubscribeEvent
+    public static void onServerAboutToStart(ServerAboutToStartEvent event) {
+        MinecraftServer server = event.getServer();
+        RegistryUtil.setupDatapackFolder(server);
+    }
+
+
 }

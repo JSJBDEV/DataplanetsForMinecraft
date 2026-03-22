@@ -6,6 +6,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.minecraftforge.server.ServerLifecycleHooks;
+import shipwrights.dataplanets.runtimeRegistration.PlanetTexturerPacket;
 import shipwrights.dataplanets.runtimeRegistration.UpdateDimensionsPacket;
 
 public class DPPackets {
@@ -31,5 +32,6 @@ public class DPPackets {
 
     public static void init() {
         INSTANCE.registerMessage(0, UpdateDimensionsPacket.class, UpdateDimensionsPacket::write, UpdateDimensionsPacket::read, UpdateDimensionsPacket::handle);
+        INSTANCE.registerMessage(1, PlanetTexturerPacket.class, PlanetTexturerPacket::write, PlanetTexturerPacket::read, PlanetTexturerPacket::handle);
     }
 }

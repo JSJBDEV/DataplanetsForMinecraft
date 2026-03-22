@@ -2,8 +2,11 @@ package shipwrights.dataplanets.systemCreation;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Climate;
@@ -23,6 +26,11 @@ import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 import shipwrights.dataplanets.runtimeRegistration.ServerPhase;
 import shipwrights.genesis.GenesisMod;
 import shipwrights.genesis.space.Celestial;
+import shipwrights.genesis.space.planet_properties.Atmosphere;
+import shipwrights.genesis.space.planet_properties.PlanetColorPalette;
+import shipwrights.genesis.space.planet_properties.PlanetProperties;
+import shipwrights.genesis.space.planet_properties.PlanetPropertiesModel;
+import shipwrights.genesis.space.registry.SystemConfigModel;
 import shipwrights.genesis.space.transformProvider.CelestialTransformProvider;
 import shipwrights.genesis.space.transformProvider.OrbitingTransformProvider;
 import shipwrights.genesis.space.type.BuiltinCelestialTypes;
@@ -76,6 +84,14 @@ public class SystemCreator {
 
         RegistryUtil.registerLevelStem(context.server, ResourceLocation.fromNamespaceAndPath(MOD_ID, planetData.name()), stem, context.serverPhase);
 
+        registerPlanetToGenesis(planetData,context);
+
+        return planetData;
+    }
+
+    public static void registerPlanetToGenesis(PlanetData planetData,SystemCreationContext context)
+    {
+        ResourceLocation rv = ResourceLocation.fromNamespaceAndPath("dataplanets",planetData.name());
         Celestial celestial = new Celestial(
                 new OrbitingTransformProvider(
                         ResourceLocation.tryParse("genesis:sun"),
@@ -84,7 +100,7 @@ public class SystemCreator {
                         planetData.orbitalPeriod() * 4_608_000,
                         24000
                 ),
-                ResourceLocation.fromNamespaceAndPath("dataplanets",planetData.name()),
+                rv,
                 BuiltinCelestialTypes.BODY,
                 planetData.size() * 96,
                 planetData.gravity(),
@@ -95,9 +111,18 @@ public class SystemCreator {
 
         SpaceRegistryInvoker spaceRegistryInvoker = (SpaceRegistryInvoker) GenesisMod.SPACE_REGISTRY;
         spaceRegistryInvoker.addBody(ResourceLocation.fromNamespaceAndPath("dataplanets",planetData.name()),celestial);
-        return planetData;
-    }
 
+
+        SystemConfigModel configModel = new SystemConfigModel(List.of(celestial));
+
+        RegistryUtil.writeToDatapack(context.server,rv,"system_config", SystemConfigModel.CODEC,configModel);
+
+        Atmosphere atmosphere = new Atmosphere(planetData.atmosphericDensity(),planetData.temperature(),false,false,new PlanetColorPalette.RGB(planetData.color().red(),planetData.color().green(),planetData.color().blue()));
+        PlanetProperties planetProperties = new PlanetProperties(rv,atmosphere);
+        PlanetPropertiesModel propertiesModel = new PlanetPropertiesModel(List.of(planetProperties));
+        RegistryUtil.writeToDatapack(context.server,rv,"system_config/planet_properties",PlanetPropertiesModel.CODEC,propertiesModel);
+
+    }
 
     public static class SystemCreationContext {
         public final MinecraftServer server;

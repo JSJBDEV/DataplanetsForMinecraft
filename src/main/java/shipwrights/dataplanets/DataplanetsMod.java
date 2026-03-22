@@ -3,6 +3,7 @@ package shipwrights.dataplanets;
 import com.tterrag.registrate.Registrate;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -10,11 +11,17 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import shipwrights.dataplanets.mixin.MinecraftServerAccessor;
 import shipwrights.dataplanets.registry.DPBlocks;
-import shipwrights.dataplanets.registry.DPEntities;
 import shipwrights.dataplanets.registry.DPItems;
+import shipwrights.dataplanets.systemCreation.PlanetData;
+import shipwrights.dataplanets.systemCreation.PlanetSource;
+import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.systemCreation.naming.FantasySystemNameGenerator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
+import shipwrights.genesis.GenesisMod;
+
+import java.nio.file.Path;
 
 @Mod.EventBusSubscriber
 @Mod(DataplanetsMod.MOD_ID)
@@ -31,7 +38,6 @@ public class DataplanetsMod {
     public DataplanetsMod(FMLJavaModLoadingContext context) {
         DPItems.init();
         DPBlocks.init();
-        DPEntities.init();
         DPPackets.init();
     }
 
@@ -45,10 +51,10 @@ public class DataplanetsMod {
     public static void onServerAboutToStart(ServerAboutToStartEvent event) {
         MinecraftServer server = event.getServer();
 
-        boolean isNewSave = RegistryUtil.setupDatapackFolder(server);
+        RegistryUtil.setupDatapackFolder(server);
 
-//        if (isNewSave) {
-//            new SystemCreator().createSystem(server, true, ServerPhase.starting);
-//        }
+
+
+
     }
 }

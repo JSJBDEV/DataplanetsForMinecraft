@@ -11,6 +11,7 @@ import shipwrights.dataplanets.PlanetLookup;
 import shipwrights.dataplanets.systemCreation.PlanetSource;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.ServerPhase;
+import shipwrights.genesis.space.registry.SpaceRegistry;
 
 public class TestPlanetCreationItem extends Item {
     public TestPlanetCreationItem(Properties arg) {
@@ -26,6 +27,7 @@ public class TestPlanetCreationItem extends Item {
             PlanetSource source = PlanetSource.createRandom(context.nextPlanetName(), context.random);
             creator.createPlanet(source, context);
             PlanetLookup.store(context.server, source);
+
         }
         return InteractionResultHolder.success(arg2.getItemInHand(arg3));
     }

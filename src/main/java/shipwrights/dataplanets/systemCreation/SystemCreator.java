@@ -2,7 +2,6 @@ package shipwrights.dataplanets.systemCreation;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RandomSource;
@@ -21,7 +20,6 @@ import shipwrights.dataplanets.systemCreation.dimension.DimensionTypeCreator;
 import shipwrights.dataplanets.systemCreation.dimension.noise.TerrainGenCreator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 import shipwrights.dataplanets.runtimeRegistration.ServerPhase;
-import shipwrights.genesis.GenesisMod;
 import shipwrights.genesis.space.Celestial;
 import shipwrights.genesis.space.properties.Atmosphere;
 import shipwrights.genesis.space.properties.PlanetColorPalette;
@@ -92,7 +90,7 @@ public class SystemCreator {
         Celestial celestial = new Celestial(
                 new OrbitingTransformProvider(
                         ResourceLocation.tryParse("genesis:sun"),
-                        4443,
+                        planetData.name().hashCode(),
                         planetData.distanceFromStar() * 15_000,
                         planetData.orbitalPeriod() * 4_608_000,
                         24000

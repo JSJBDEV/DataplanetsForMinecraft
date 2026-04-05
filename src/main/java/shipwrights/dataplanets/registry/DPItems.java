@@ -10,7 +10,7 @@ public class DPItems {
         DataplanetsMod.REGISTRATE.defaultCreativeTab("dataplanets").register();
     }
 
-    public static ItemEntry<TestPlanetCreationItem> CREATE_PLANET_ITEM = DataplanetsMod.REGISTRATE.item("test_planet_creator",TestPlanetCreationItem::new).properties((a)->a).lang("Test Planet Creator").register();
+    public static ItemEntry<PlanetCreationItem> CREATE_PLANET_ITEM = DataplanetsMod.REGISTRATE.item("test_planet_creator", PlanetCreationItem::new).properties((a)->a).lang("Test Planet Creator").register();
     public static ItemEntry<TelescopeItem> TELESCOPE_ITEM = DataplanetsMod.REGISTRATE.item("portable_telescope",TelescopeItem::new).properties((a)->a).lang("Portable Telescope").register();
 
     /// do not delete

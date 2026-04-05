@@ -12,21 +12,22 @@ import shipwrights.dataplanets.systemCreation.PlanetSource;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.ServerPhase;
 
-public class TestPlanetCreationItem extends Item {
-    public TestPlanetCreationItem(Properties arg) {
+public class PlanetCreationItem extends Item {
+    public PlanetCreationItem(Properties arg) {
         super(arg);
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level arg, Player arg2, InteractionHand arg3) {
-        if (arg instanceof ServerLevel level) {
+        if (arg instanceof ServerLevel level && arg3 == InteractionHand.MAIN_HAND)
+        {
             SystemCreator creator = new SystemCreator();
             SystemCreator.SystemCreationContext context = new SystemCreator.SystemCreationContext(level.getServer(), true, ServerPhase.running);
 
             PlanetSource source = PlanetSource.createRandom(context.nextPlanetName(), context.random);
             creator.createPlanet(source, context);
             PlanetLookup.store(context.server, source);
-
+            arg2.getItemInHand(arg3).shrink(1);
         }
         return InteractionResultHolder.success(arg2.getItemInHand(arg3));
     }

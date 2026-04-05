@@ -1,45 +1,26 @@
-# Dataplanets
-A mod that uses slightly cursed registry manipulation to add infinite planets to space mods
+# Dataplanets For Genesis
 
-# The Plan
-- :green_circle: Rocky terrestrial planets
-- :green_circle: (Rocky) sea planets
-- :orange_circle: Stars
-- :orange_circle:/:green_circle: Gas Giants
-  - Stars and gas giants are currently implemented the exact same way; A bedrock layer, 50 lava, 50 dense gas
-  - This is basically finished, I just want to add flares/plumes at some point
-- :red_circle: Space Factions
-  - Three factions are planned
-- :orange_circle: Questing System
-  - A simple task-return-reward system has been implemented
-- :orange_circle: Radio Integration
-  - A way of connecting the cosmos together, like being able to ping weather stations for information
-- :orange_circle: Atmospheric and Temperature Effects
-  - if it is too hot, too cold, or does not have an atmosphere and oxygen then effects occur
-  - (in this commit there is no way to mitigate these effects)
-- :red_circle: Creatures
-  - :red_circle: Sea Creatures
-  - :red_circle: Terrestrial Creatures
+Dataplanets adds *an infinite* amount of planets to your Genesis universe!
+![A Desert Planet](https://cdn.modrinth.com/data/cached_images/6f052789b60fda0226ad583f79c2e4809c30efe8_0.webp)
 
-# Things this version won't add or are in another mod
-- Space Transportation
-  - Space Transportation is usually handled externally with something like GCYR or Genesis
-- Research System
-  - Some mods would require a research system to have tangible progression to reach new systems
-  - This is partially implemented for GCYR, but not needed for Genesis
-- Space Stations
-    - In this version, space stations will likely be supplied external
-    - There is a basic implementation of modular space stations in this project
-- Radio System
-  - Now handled in a separate mod see [This github repo](https://github.com/JSJBDEV/Radios)
+![A Strange Planet](https://cdn.modrinth.com/data/cached_images/b1b604a60d821ed41ea9bd66221a2f923f2d705b_0.webp)
 
-This project is made with help and inspiration from team GTIC (more about them to come)
+![A Wet Planet](https://cdn.modrinth.com/data/cached_images/ab3619541dcfb22855b38c3a8ca87c82600b986c_0.webp)
 
-# Screenshots so far
-![dripstoney](https://i.ibb.co/TBFJc4w/image-2025-01-13-111337253.png)
+![A white star](https://cdn.modrinth.com/data/cached_images/9be0f23750bce2b8ea2e3ec6a064d1cd356d0e2f_0.webp)
 
-![Deltas](https://media.discordapp.net/attachments/1351288322768633988/1359279447320301839/image.png?ex=67f6e722&is=67f595a2&hm=a78f6130a4931036ce411999f6904969c3fb5e481378eff6d8bc003bafd7c5b4&=&format=webp&quality=lossless&width=1662&height=856)
+By default there are some config options:
 
-![Atmosphere](https://media.discordapp.net/attachments/1351288322768633988/1359276442890010644/image.png?ex=67f6e456&is=67f592d6&hm=644a4844a79ff66e9761b41f6f4a90658ffb9a3453910afe67a1e90686b04151&=&format=webp&quality=lossless&width=1632&height=856)
+```
+mainSystemPlanets = 3 (how many planets are generate in the overworlds star system)
+mainSystemPlanetMoonsMax = 1 (how many moons can each of those planets have)
+totalAdditionalSystems = 1 (how many additional other star system there are)
+maxPlanetsInAdditionalSystems = 5 (the max amount of planets in other star systems)
+maxMoonsForPlanetsInAdditionalSystems = 1 (the max amount of moons around those planets)
+```
+There is a creative mode tab that currently adds two creative only items:
+- Portable Telescope, if pointed at a celestial body in space it will tell you its name and coordinates
+- Theory for a new Star System, can be used to create a new star system ON THE FLY (using the additional system config)
 
-![planet screen](https://media.discordapp.net/attachments/1293662592212009061/1293662592539033662/Screenshot_2024-10-09_203734.png?ex=678617ed&is=6784c66d&hm=2323c84259425bbfdca8bb6356e43e73ac5942d2d501439128b1264b15363c63&=&format=webp&quality=lossless&width=1060&height=671)
+
+

@@ -11,10 +11,10 @@ import net.minecraft.util.RandomSource;
  * <br> <br>
  * All properties use Earth = 1.0 as a reference point
  **/
-public record PlanetSource(
+public record CelestialSource(
         String name,
         double size,
-        double distanceFromStar,
+        double orbitDistance,
         double atmosphericDensity,
         double weirdness,
         double seaLevel,
@@ -22,26 +22,38 @@ public record PlanetSource(
         double flavour
 ) {
 
-    public static final Codec<PlanetSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("name").forGetter(PlanetSource::name),
-            Codec.DOUBLE.fieldOf("size").forGetter(PlanetSource::size),
-            Codec.DOUBLE.fieldOf("distanceFromStar").forGetter(PlanetSource::distanceFromStar),
-            Codec.DOUBLE.fieldOf("atmosphericDensity").forGetter(PlanetSource::atmosphericDensity),
-            Codec.DOUBLE.fieldOf("weirdness").forGetter(PlanetSource::weirdness),
-            Codec.DOUBLE.fieldOf("seaLevel").forGetter(PlanetSource::seaLevel),
-            Codec.DOUBLE.fieldOf("terrainRoughness").forGetter(PlanetSource::terrainRoughness),
-            Codec.DOUBLE.fieldOf("flavour").forGetter(PlanetSource::flavour)
-    ).apply(instance, PlanetSource::new));
+    public static final Codec<CelestialSource> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.STRING.fieldOf("name").forGetter(CelestialSource::name),
+            Codec.DOUBLE.fieldOf("size").forGetter(CelestialSource::size),
+            Codec.DOUBLE.fieldOf("orbitDistance").forGetter(CelestialSource::orbitDistance),
+            Codec.DOUBLE.fieldOf("atmosphericDensity").forGetter(CelestialSource::atmosphericDensity),
+            Codec.DOUBLE.fieldOf("weirdness").forGetter(CelestialSource::weirdness),
+            Codec.DOUBLE.fieldOf("seaLevel").forGetter(CelestialSource::seaLevel),
+            Codec.DOUBLE.fieldOf("terrainRoughness").forGetter(CelestialSource::terrainRoughness),
+            Codec.DOUBLE.fieldOf("flavour").forGetter(CelestialSource::flavour)
+    ).apply(instance, CelestialSource::new));
 
-    public static PlanetSource createRandom(String name, RandomSource random) {
+    public static CelestialSource createRandomPlanet(String name, RandomSource random) {
         return builder(name)
                 .size(doubleBetween(random, 0.5, 2.0))
-                .distanceFromStar(doubleBetween(random, 0.25, 2.0))
+                .orbitingDistance(doubleBetween(random, 0.25, 2.0))
                 .atmosphericDensity(doubleBetween(random, 0.0, 2.0))
                 .weirdness(doubleBetween(random, 0.0, 2.0))
                 .seaLevel(doubleBetween(random, 0.0, 2.0))
                 .terrainRoughness(doubleBetween(random, 0.0, 2.0))
                 .flavour(doubleBetween(random, 0.0, 2.0))
+                .build();
+    }
+
+    public static CelestialSource createRandomMoon(String name, RandomSource random) {
+        return builder(name)
+                .size(doubleBetween(random, 0.01, 0.7))
+                .orbitingDistance(doubleBetween(random, 0.01, 0.5))
+                .atmosphericDensity(doubleBetween(random, 0.0, 1.0))
+                .weirdness(doubleBetween(random, 0.0, 3.0))
+                .seaLevel(doubleBetween(random, 0.0, 2.0))
+                .terrainRoughness(doubleBetween(random, 0.0, 3.0))
+                .flavour(doubleBetween(random, 0.0, 3.0))
                 .build();
     }
 
@@ -72,7 +84,7 @@ public record PlanetSource(
             return this;
         }
 
-        public Builder distanceFromStar(double distanceFromStar) {
+        public Builder orbitingDistance(double distanceFromStar) {
             this.distanceFromStar = distanceFromStar;
             return this;
         }
@@ -102,8 +114,8 @@ public record PlanetSource(
             return this;
         }
 
-        public PlanetSource build() {
-            return new PlanetSource(name, size, distanceFromStar, atmosphericDensity, weirdness, seaLevel, terrainRoughness, flavour);
+        public CelestialSource build() {
+            return new CelestialSource(name, size, distanceFromStar, atmosphericDensity, weirdness, seaLevel, terrainRoughness, flavour);
         }
     }
 }

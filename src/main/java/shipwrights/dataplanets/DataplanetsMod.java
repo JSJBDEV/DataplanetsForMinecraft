@@ -6,29 +6,21 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.network.PacketDistributor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import shipwrights.dataplanets.mixin.MinecraftServerAccessor;
 import shipwrights.dataplanets.registry.DPBlocks;
 import shipwrights.dataplanets.registry.DPItems;
 import shipwrights.dataplanets.runtimeRegistration.PlanetTexturerPacket;
-import shipwrights.dataplanets.systemCreation.PlanetData;
-import shipwrights.dataplanets.systemCreation.PlanetSource;
-import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.systemCreation.naming.FantasySystemNameGenerator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 import shipwrights.genesis.GenesisMod;
-
-import java.nio.file.Path;
 
 @Mod.EventBusSubscriber
 @Mod(DataplanetsMod.MOD_ID)
@@ -43,6 +35,7 @@ public class DataplanetsMod {
     public static final ResourceLocation MUTABLE_DATA = ResourceLocation.fromNamespaceAndPath("dataplanets","mutable_data");
 
     public DataplanetsMod(FMLJavaModLoadingContext context) {
+        context.registerConfig(ModConfig.Type.COMMON, DataplanetsConfig.CONFIG_SPEC);
         DPItems.init();
         DPBlocks.init();
         DPPackets.init();
@@ -61,12 +54,7 @@ public class DataplanetsMod {
         {
             if(a.getNamespace().equals("dataplanets"))
             {
-                CompoundTag tag = new CompoundTag();
-                tag.putString("name",a.getPath());
-                tag.put("state", NbtUtils.writeBlockState(Blocks.STONE.defaultBlockState()));
-
-                PlanetTexturerPacket packet = new PlanetTexturerPacket(tag);
-                DPPackets.sendToAll(DPPackets.INSTANCE,packet);
+                RegistryUtil.sendTexturesToClient(a);
             }
         });
 

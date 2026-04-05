@@ -14,8 +14,8 @@ import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
-import shipwrights.dataplanets.systemCreation.PlanetData;
-import shipwrights.dataplanets.systemCreation.PlanetSource;
+import shipwrights.dataplanets.systemCreation.CelestialData;
+import shipwrights.dataplanets.systemCreation.CelestialSource;
 import shipwrights.dataplanets.util.Color;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 
@@ -26,19 +26,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlanetLookup {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Map<ResourceLocation, PlanetData> planets = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, CelestialData> planets = new ConcurrentHashMap<>();
     private static final String PATH = "planet_source";
 
-    public static void store(MinecraftServer server, PlanetSource planet) {
+    public static void store(MinecraftServer server, CelestialSource planet) {
         load(planet);
-        RegistryUtil.writeToDatapack(server, id(planet.name()), PATH, PlanetSource.CODEC, planet);
+        RegistryUtil.writeToDatapack(server, id(planet.name()), PATH, CelestialSource.CODEC, planet);
     }
 
-    private static void load(PlanetSource planet) {
-        planets.put(id(planet.name()), PlanetData.fromPlanetSource(planet));
+    private static void load(CelestialSource planet) {
+        planets.put(id(planet.name()), CelestialData.fromPlanetSource(planet));
     }
 
-    public static PlanetData get(ResourceLocation dimension) {
+    public static CelestialData get(ResourceLocation dimension) {
         return planets.getOrDefault(dimension, getDefault(dimension.getPath()));
     }
 
@@ -46,8 +46,8 @@ public class PlanetLookup {
         return ResourceLocation.fromNamespaceAndPath(DataplanetsMod.MOD_ID, dimensionName);
     }
 
-    private static PlanetData getDefault(String name) {
-        return new PlanetData(name, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, ResourceLocation.withDefaultNamespace("stone"), ResourceLocation.withDefaultNamespace("water"), 1.0, new Color(128, 128, 128, 255));
+    private static CelestialData getDefault(String name) {
+        return new CelestialData(name, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, ResourceLocation.withDefaultNamespace("stone"), ResourceLocation.withDefaultNamespace("water"), 1.0, new Color(128, 128, 128, 255));
     }
 
     @SubscribeEvent
@@ -57,7 +57,7 @@ public class PlanetLookup {
             protected void apply(@NotNull Map<ResourceLocation, JsonElement> map, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
                 for (Map.Entry<ResourceLocation, JsonElement> entry : map.entrySet()) {
                     try {
-                        PlanetSource.CODEC.parse(JsonOps.INSTANCE, entry.getValue())
+                        CelestialSource.CODEC.parse(JsonOps.INSTANCE, entry.getValue())
                                 .resultOrPartial(error -> DataplanetsMod.LOGGER.error("Failed to parse planet source {}: {}", entry.getKey(), error)).ifPresent(PlanetLookup::load);
 
                     } catch (Exception e) {

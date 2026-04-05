@@ -15,7 +15,7 @@ import java.util.Optional;
  * <br><br>
  * Derived properties should be fully deterministic, using hash functions if randomness is desired
  **/
-public record PlanetData(
+public record CelestialData(
         String name,
         double size,
         double distanceFromStar,
@@ -32,10 +32,10 @@ public record PlanetData(
         Color color
 ) {
 
-    public static PlanetData fromPlanetSource(PlanetSource source) {
-        double temperature = deriveTemperature(source.distanceFromStar(), source.atmosphericDensity());
+    public static CelestialData fromPlanetSource(CelestialSource source) {
+        double temperature = deriveTemperature(source.orbitDistance(), source.atmosphericDensity());
         double gravity = deriveGravity(source.size());
-        double orbitalPeriod = deriveOrbitalPeriod(source.distanceFromStar());
+        double orbitalPeriod = deriveOrbitalPeriod(source.orbitDistance());
         double effectiveHumidity = Math.min(1.0, source.seaLevel() * source.atmosphericDensity());
 
         Optional<BlockInfo> primaryBlockInfo = derivePrimaryBlockInfo(
@@ -56,10 +56,10 @@ public record PlanetData(
                 .map(BlockInfo::getColor)
                 .orElse(new Color(128, 128, 128, 255));
 
-        return new PlanetData(
+        return new CelestialData(
             source.name(),
             source.size(),
-            source.distanceFromStar(),
+            source.orbitDistance(),
             source.atmosphericDensity(),
             orbitalPeriod,
             source.weirdness(),

@@ -8,7 +8,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.level.dimension.DimensionType;
 import shipwrights.dataplanets.compat.Compat;
-import shipwrights.dataplanets.systemCreation.PlanetData;
+import shipwrights.dataplanets.systemCreation.CelestialData;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 
@@ -22,9 +22,9 @@ import static shipwrights.dataplanets.DataplanetsMod.MOD_ID;
  */
 public class DimensionTypeCreator {
 
-    public static Holder<DimensionType> createAndRegisterDimensionType(SystemCreator.SystemCreationContext context, PlanetData planetData) {
-        DimensionType dimensionType = DimensionTypeCreator.createFromPlanetData(planetData, context.compat);
-        ResourceLocation dimensionTypeLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID, planetData.name() + "_dimension_type");
+    public static Holder<DimensionType> createAndRegisterDimensionType(SystemCreator.SystemCreationContext context, CelestialData celestialData) {
+        DimensionType dimensionType = DimensionTypeCreator.createFromPlanetData(celestialData, context.compat);
+        ResourceLocation dimensionTypeLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID, celestialData.name() + "_dimension_type");
         ResourceKey<DimensionType> dimensionTypeKey = ResourceKey.create(Registries.DIMENSION_TYPE, dimensionTypeLocation);
 
         RegistryUtil.registerDimensionType(
@@ -42,22 +42,22 @@ public class DimensionTypeCreator {
     /**
      * Create a dimension type based on planet data
      *
-     * @param planetData The planet data to create a dimension type from
+     * @param celestialData The planet data to create a dimension type from
      * @param compat current loaded compatibility
      * @return The appropriate dimension type
      */
-    private static DimensionType createFromPlanetData(PlanetData planetData, Compat compat) {
+    private static DimensionType createFromPlanetData(CelestialData celestialData, Compat compat) {
 
         // Closer to star = more skylight (inverse relationship)
         // Earth distance is ~1.0, so less than ~3.0 has good skylight
-        boolean hasSkylight = planetData.distanceFromStar() < 3.0;
+        boolean hasSkylight = celestialData.distanceFromStar() < 3.0;
 
         // Temperature thresholds (using normalized scale where Earth = 1.0)
-        boolean ultrawarm = planetData.temperature() > 1.8;  // Very hot planets
-        boolean monsterSpawn = planetData.temperature() > 0.5 && planetData.temperature() < 2.0;  // Habitable temperature range
+        boolean ultrawarm = celestialData.temperature() > 1.8;  // Very hot planets
+        boolean monsterSpawn = celestialData.temperature() > 0.5 && celestialData.temperature() < 2.0;  // Habitable temperature range
 
         // Atmosphere threshold - anything above 0.3 is considered "has atmosphere"
-        boolean hasAtmosphere = planetData.atmosphericDensity() > 0.3;
+        boolean hasAtmosphere = celestialData.atmosphericDensity() > 0.3;
 
         if (hasAtmosphere) {
             // Planet with atmosphere - overworld effects

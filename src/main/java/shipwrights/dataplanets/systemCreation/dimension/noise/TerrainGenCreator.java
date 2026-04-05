@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.*;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
-import shipwrights.dataplanets.systemCreation.PlanetData;
+import shipwrights.dataplanets.systemCreation.CelestialData;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 
@@ -28,34 +28,34 @@ public class TerrainGenCreator {
 
     /**
      * Create noise generator settings from planet data
-     * @param planetData The planet data to create terrain generation settings from
+     * @param celestialData The planet data to create terrain generation settings from
      * @return NoiseGeneratorSettings configured for this planet
      */
-    public static Holder.Reference<NoiseGeneratorSettings> createFromPlanetData(PlanetData planetData, SystemCreator.SystemCreationContext context) {
+    public static Holder.Reference<NoiseGeneratorSettings> createFromPlanetData(CelestialData celestialData, SystemCreator.SystemCreationContext context) {
         // Convert planet's sea level (0.0-2.0 normalized) to Minecraft Y coordinate
         // Earth-like sea level (~1.0) should map to around Y=63
-        int seaLevel = (int) (planetData.seaLevel() * 63);
+        int seaLevel = (int) (celestialData.seaLevel() * 63);
 
         // Get block states from planet data
-        BlockState defaultBlock = getBlockState(planetData.primaryBlock());
-        BlockState defaultFluid = getBlockState(planetData.primaryFluid());
+        BlockState defaultBlock = getBlockState(celestialData.primaryBlock());
+        BlockState defaultFluid = getBlockState(celestialData.primaryFluid());
 
         // Create noise settings based on planet size
         // Larger planets get more vertical space
-        NoiseSettings noiseSettings = createNoiseSettings(planetData);
+        NoiseSettings noiseSettings = createNoiseSettings(celestialData);
 
         // Create noise router for terrain shape
-        NoiseRouter noiseRouter = createNoiseRouter(planetData, context);
+        NoiseRouter noiseRouter = createNoiseRouter(celestialData, context);
 
         // Create surface rules for block placement
-        SurfaceRules.RuleSource surfaceRule = createSurfaceRules(planetData);
+        SurfaceRules.RuleSource surfaceRule = createSurfaceRules(celestialData);
 
         // Use overworld spawn targets (can be customized later)
         List<Climate.ParameterPoint> spawnTarget = new OverworldBiomeBuilder().spawnTarget();
 
         // Determine generation flags
         boolean disableMobGeneration = false; // Allow mobs for now
-        boolean aquifersEnabled = planetData.seaLevel() > 0.3; // Only if planet has significant water
+        boolean aquifersEnabled = celestialData.seaLevel() > 0.3; // Only if planet has significant water
         boolean oreVeinsEnabled = true; // Enable ore veins
         boolean useLegacyRandomSource = false; // Use modern random
 
@@ -73,7 +73,7 @@ public class TerrainGenCreator {
                 useLegacyRandomSource
         );
 
-        ResourceLocation noiseSettingsLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID, planetData.name() + "_noise_settings");
+        ResourceLocation noiseSettingsLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID, celestialData.name() + "_noise_settings");
         ResourceKey<NoiseGeneratorSettings> noiseSettingsKey = ResourceKey.create(Registries.NOISE_SETTINGS, noiseSettingsLocation);
 
         RegistryUtil.registerNoiseSettings(context.server, noiseSettingsLocation, noiseGeneratorSettings);
@@ -86,23 +86,23 @@ public class TerrainGenCreator {
     /**
      * Create noise settings based on planet characteristics
      */
-    private static NoiseSettings createNoiseSettings(PlanetData planetData) {
+    private static NoiseSettings createNoiseSettings(CelestialData celestialData) {
         // Base dimensions
         int minY = -64;
         int height = 384;
 
         // Adjust based on planet size
         // Larger planets (size > 1.5) get more vertical space
-        if (planetData.size() > 1.5) {
+        if (celestialData.size() > 1.5) {
             height = 448; // Taller terrain
-        } else if (planetData.size() < 0.5) {
+        } else if (celestialData.size() < 0.5) {
             height = 256; // Shorter terrain
             minY = -32;
         }
 
         // Noise size affects terrain detail
         // More terrain roughness = smaller horizontal noise size (more detail)
-        int horizontalSize = planetData.terrainRoughness() > 1.5 ? 1 : 2;
+        int horizontalSize = celestialData.terrainRoughness() > 1.5 ? 1 : 2;
         int verticalSize = 2; // Standard vertical noise
 
         return NoiseSettings.create(minY, height, horizontalSize, verticalSize);
@@ -119,7 +119,7 @@ public class TerrainGenCreator {
     /**
      * Create a noise router for terrain generation based on planet properties
      */
-    private static NoiseRouter createNoiseRouter(PlanetData planetData, SystemCreator.SystemCreationContext context) {
+    private static NoiseRouter createNoiseRouter(CelestialData celestialData, SystemCreator.SystemCreationContext context) {
         HolderLookup.RegistryLookup<NormalNoise.NoiseParameters> noiseRegistry =
                 context.server.registryAccess().lookupOrThrow(Registries.NOISE);
 
@@ -127,16 +127,16 @@ public class TerrainGenCreator {
                 context.server.registryAccess().lookupOrThrow(Registries.DENSITY_FUNCTION);
 
         // Calculate noise parameters from planet data
-        double noiseScale = Math.max(0.1, planetData.terrainRoughness());
-        double noiseAmplitude = planetData.size() * 0.3; // Reduced from 0.8 for more traversable terrain
-        double weirdnessFactor = Math.abs(planetData.weirdness());
-        double seaLevelOffset = (planetData.seaLevel() - 1.0) * 16.0; // Reduced from 32.0
+        double noiseScale = Math.max(0.1, celestialData.terrainRoughness());
+        double noiseAmplitude = celestialData.size() * 0.3; // Reduced from 0.8 for more traversable terrain
+        double weirdnessFactor = Math.abs(celestialData.weirdness());
+        double seaLevelOffset = (celestialData.seaLevel() - 1.0) * 16.0; // Reduced from 32.0
 
         // Clamp climate parameters to valid range [-2.0, 2.0]
-        double temperature = clampClimateParameter(planetData.temperature());
-        double vegetation = clampClimateParameter(planetData.atmosphericDensity());
-        double erosion = clampClimateParameter(planetData.weirdness() * 0.8);
-        double ridges = clampClimateParameter(planetData.terrainRoughness() * 0.8);
+        double temperature = clampClimateParameter(celestialData.temperature());
+        double vegetation = clampClimateParameter(celestialData.atmosphericDensity());
+        double erosion = clampClimateParameter(celestialData.weirdness() * 0.8);
+        double ridges = clampClimateParameter(celestialData.terrainRoughness() * 0.8);
 
         // Cache commonly used noise holders for performance
         Holder<NormalNoise.NoiseParameters> shiftNoise = noiseRegistry.getOrThrow(Noises.SHIFT);
@@ -158,7 +158,7 @@ public class TerrainGenCreator {
                             noiseScale * 0.6
                     )
             );
-        } else if (planetData.terrainRoughness() > 1.3) {
+        } else if (celestialData.terrainRoughness() > 1.3) {
             // Rough planets: moderate mountains (reduced from 1.2x to 0.75x)
             baseTerrainNoise = DensityFunctions.mul(
                     DensityFunctions.constant(noiseAmplitude * 0.75),
@@ -168,7 +168,7 @@ public class TerrainGenCreator {
                             noiseScale * 0.5
                     )
             );
-        } else if (planetData.terrainRoughness() < 0.7) {
+        } else if (celestialData.terrainRoughness() < 0.7) {
             // Smooth planets: very gentle hills (reduced from 0.6x to 0.4x)
             baseTerrainNoise = DensityFunctions.mul(
                     DensityFunctions.constant(noiseAmplitude * 0.4),
@@ -191,7 +191,7 @@ public class TerrainGenCreator {
         }
 
         // Simplified detail layer - only add if flavour is significant (performance optimization)
-        DensityFunction detailNoise = Math.abs(planetData.flavour()) > 0.5
+        DensityFunction detailNoise = Math.abs(celestialData.flavour()) > 0.5
                 ? DensityFunctions.mul(
                         DensityFunctions.constant(noiseAmplitude * 0.15), // Reduced from 0.3
                         DensityFunctions.noise(
@@ -204,7 +204,7 @@ public class TerrainGenCreator {
 
         // Simplified continents - reduced amplitude and using cached noise
         DensityFunction continents = DensityFunctions.mul(
-                DensityFunctions.constant(planetData.size() * 0.2), // Reduced from 0.4
+                DensityFunctions.constant(celestialData.size() * 0.2), // Reduced from 0.4
                 DensityFunctions.noise(continentalnessNoise, 0.08, 0.04)
         );
 
@@ -219,7 +219,7 @@ public class TerrainGenCreator {
         );
 
         // Add craters for low-atmosphere planets (creates impact crater terrain)
-        DensityFunction craters = planetData.atmosphericDensity() < 0.5
+        DensityFunction craters = celestialData.atmosphericDensity() < 0.5
                 ? DensityFunctions.add(DensityFunctions.add(
                         densityFunctionRegistry.getOrThrow(ResourceKey.create(Registries.DENSITY_FUNCTION, ResourceLocation.fromNamespaceAndPath(MOD_ID, "crater0"))).get(),
                         densityFunctionRegistry.getOrThrow(ResourceKey.create(Registries.DENSITY_FUNCTION, ResourceLocation.fromNamespaceAndPath(MOD_ID, "crater1"))).get()),
@@ -254,16 +254,16 @@ public class TerrainGenCreator {
                 ResourceKey.create(Registries.NOISE, ResourceLocation.fromNamespaceAndPath("minecraft", "ridge")));
 
         // Aquifer configuration based on planet properties - optimize with constants when disabled
-        DensityFunction aquiferFloodedness = planetData.seaLevel() > 0.5
+        DensityFunction aquiferFloodedness = celestialData.seaLevel() > 0.5
                 ? DensityFunctions.noise(noiseRegistry.getOrThrow(Noises.AQUIFER_FLUID_LEVEL_FLOODEDNESS), 1.0, 0.0)
                 : DensityFunctions.zero();
 
-        DensityFunction aquiferSpread = planetData.seaLevel() > 0.5
+        DensityFunction aquiferSpread = celestialData.seaLevel() > 0.5
                 ? DensityFunctions.noise(noiseRegistry.getOrThrow(Noises.AQUIFER_FLUID_LEVEL_SPREAD), 1.0, 0.0)
                 : DensityFunctions.zero();
 
         // Lava presence based on temperature
-        DensityFunction lavaNoise = planetData.temperature() > 1.5
+        DensityFunction lavaNoise = celestialData.temperature() > 1.5
                 ? DensityFunctions.noise(noiseRegistry.getOrThrow(Noises.AQUIFER_LAVA), 1.0, 0.0)
                 : DensityFunctions.constant(-1.0);
 
@@ -317,14 +317,14 @@ public class TerrainGenCreator {
     /**
      * Create surface rules based on planet properties
      */
-    private static SurfaceRules.RuleSource createSurfaceRules(PlanetData planetData) {
-        BlockState primaryBlock = getBlockState(planetData.primaryBlock());
+    private static SurfaceRules.RuleSource createSurfaceRules(CelestialData celestialData) {
+        BlockState primaryBlock = getBlockState(celestialData.primaryBlock());
 
         // Create basic surface rule: primary block at surface
         SurfaceRules.RuleSource primarySurface = SurfaceRules.state(primaryBlock);
 
         // Add surface variation based on temperature and weirdness
-        if (planetData.temperature() > 1.5) {
+        if (celestialData.temperature() > 1.5) {
             // Hot planets - add some variety with sand/red sandstone
             return SurfaceRules.sequence(
                     SurfaceRules.ifTrue(
@@ -333,7 +333,7 @@ public class TerrainGenCreator {
                     ),
                     primarySurface
             );
-        } else if (planetData.temperature() < 0.5) {
+        } else if (celestialData.temperature() < 0.5) {
             // Cold planets - add snow/ice layers
             return SurfaceRules.sequence(
                     SurfaceRules.ifTrue(
@@ -342,7 +342,7 @@ public class TerrainGenCreator {
                     ),
                     primarySurface
             );
-        } else if (planetData.weirdness() > 1.5) {
+        } else if (celestialData.weirdness() > 1.5) {
             // Weird planets - unusual surface
             return SurfaceRules.sequence(
                     SurfaceRules.ifTrue(

@@ -8,7 +8,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import shipwrights.dataplanets.PlanetLookup;
-import shipwrights.dataplanets.systemCreation.PlanetSource;
+import shipwrights.dataplanets.systemCreation.CelestialSource;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.ServerPhase;
 
@@ -24,8 +24,8 @@ public class PlanetCreationItem extends Item {
             SystemCreator creator = new SystemCreator();
             SystemCreator.SystemCreationContext context = new SystemCreator.SystemCreationContext(level.getServer(), true, ServerPhase.running);
 
-            PlanetSource source = PlanetSource.createRandom(context.nextPlanetName(), context.random);
-            creator.createPlanet(source, context);
+            CelestialSource source = CelestialSource.createRandomPlanet(context.nextPlanetName(), context.random);
+            creator.createBody(source, context);
             PlanetLookup.store(context.server, source);
             arg2.getItemInHand(arg3).shrink(1);
         }

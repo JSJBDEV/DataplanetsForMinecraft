@@ -12,7 +12,6 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
-import shipwrights.dataplanets.PlanetLookup;
 import shipwrights.dataplanets.compat.Compat;
 import shipwrights.dataplanets.systemCreation.naming.SystemNameGenerator;
 import shipwrights.dataplanets.systemCreation.dimension.biome.BiomeCreator;
@@ -24,7 +23,9 @@ import shipwrights.genesis.space.Celestial;
 import shipwrights.genesis.space.properties.Atmosphere;
 import shipwrights.genesis.space.properties.PlanetColorPalette;
 import shipwrights.genesis.space.properties.PlanetProperties;
+import shipwrights.genesis.space.properties.StarProperties;
 import shipwrights.genesis.space.transformProvider.OrbitingTransformProvider;
+import shipwrights.genesis.space.transformProvider.StaticTransformProvider;
 import shipwrights.genesis.space.type.BuiltinCelestialTypes;
 
 import java.util.ArrayList;
@@ -34,78 +35,91 @@ import static shipwrights.dataplanets.DataplanetsMod.MOD_ID;
 
 public class SystemCreator {
 
-    public void createSystem(MinecraftServer server, boolean scientificNamingStyle, ServerPhase phase) {
-        SystemCreationContext context = new SystemCreationContext(server, scientificNamingStyle, phase);
-
-        List<PlanetSource> sources = createPlanetSources(context);
-
-        List<PlanetData> planets = new ArrayList<>();
-
-        for (var source : sources) {
-            planets.add(createPlanet(source, context));
-            PlanetLookup.store(server, source);
-        }
-
-        context.compat.addPlanetsToSpace(server, planets);
-    }
-
-    private static List<PlanetSource> createPlanetSources(SystemCreator.SystemCreationContext context) {
+    private static List<CelestialSource> createPlanetSources(SystemCreator.SystemCreationContext context) {
         int planetCount = context.random.nextInt(4, 9);
-        List<PlanetSource> output = new ArrayList<>();
+        List<CelestialSource> output = new ArrayList<>();
         for (int i = 0; i < planetCount; i++) {
-            output.add(PlanetSource.createRandom(context.nextPlanetName(), context.random));
+            output.add(CelestialSource.createRandomPlanet(context.nextPlanetName(), context.random));
         }
 
         return output;
     }
 
-    public PlanetData createPlanet(PlanetSource source, SystemCreationContext context) {
-        PlanetData planetData = PlanetData.fromPlanetSource(source);
+    public CelestialData createBody(CelestialSource source, SystemCreationContext context, String orbiting) {
+        CelestialData celestialData = CelestialData.fromPlanetSource(source);
 
-        Holder<DimensionType> dimensionTypeHolder = DimensionTypeCreator.createAndRegisterDimensionType(context, planetData);
+        Holder<DimensionType> dimensionTypeHolder = DimensionTypeCreator.createAndRegisterDimensionType(context, celestialData);
 
-        List<Pair<Climate.ParameterPoint, Holder<Biome>>> biomeList = new BiomeCreator().createAndRegisterBiomes(context, planetData);
+        List<Pair<Climate.ParameterPoint, Holder<Biome>>> biomeList = new BiomeCreator().createAndRegisterBiomes(context, celestialData);
 
-        Holder<NoiseGeneratorSettings> noiseSettings = TerrainGenCreator.createFromPlanetData(planetData, context);
+        Holder<NoiseGeneratorSettings> noiseSettings = TerrainGenCreator.createFromPlanetData(celestialData, context);
 
         MultiNoiseBiomeSource biomeSource = MultiNoiseBiomeSource.createFromList(new Climate.ParameterList<>(biomeList));
         NoiseBasedChunkGenerator noiseBasedChunkGenerator = new NoiseBasedChunkGenerator(biomeSource, noiseSettings);
 
         LevelStem stem = new LevelStem(dimensionTypeHolder, noiseBasedChunkGenerator);
 
-        RegistryUtil.registerLevelStem(context.server, ResourceLocation.fromNamespaceAndPath(MOD_ID, planetData.name()), stem, context.serverPhase);
+        RegistryUtil.registerLevelStem(context.server, ResourceLocation.fromNamespaceAndPath(MOD_ID, celestialData.name()), stem, context.serverPhase);
 
-        registerPlanetToGenesis(planetData,context);
+        registerPlanetToGenesis(celestialData,context,orbiting);
 
-        return planetData;
+        return celestialData;
     }
 
-    public static void registerPlanetToGenesis(PlanetData planetData,SystemCreationContext context)
+    public CelestialData createBody(CelestialSource source, SystemCreationContext context)
     {
-        Atmosphere atmosphere = new Atmosphere(planetData.atmosphericDensity(),planetData.temperature(),false,false,new PlanetColorPalette.RGB(planetData.color().red(),planetData.color().green(),planetData.color().blue()));
+        return createBody(source,context,"genesis:sun");
+    }
+
+    public static void registerStaticToGenesis(StarData starData,SystemCreationContext context)
+    {
+        ResourceLocation rv = ResourceLocation.fromNamespaceAndPath("dataplanets", starData.name());
+
+        int[] g = starData.gradient();
+        int[] p = starData.pos();
+
+        StarProperties starProperties = new StarProperties(g[0],g[1],g[2],g[3],g[4],g[5]);
+        Celestial celestial = new Celestial(
+               new StaticTransformProvider(p[0],p[1],p[2]),
+
+                BuiltinCelestialTypes.STAR,
+                starData.size() * 1000,
+                2,
+                0.5f,
+                0.5f,
+                0.5f,
+                starProperties
+        );
+
+        RegistryUtil.registerGenesisFiles(context.server,celestial,rv,false);
+    }
+
+    public static void registerPlanetToGenesis(CelestialData celestialData, SystemCreationContext context,String orbiting)
+    {
+        Atmosphere atmosphere = new Atmosphere(celestialData.atmosphericDensity(), celestialData.temperature(),false,false,new PlanetColorPalette.RGB(celestialData.color().red(), celestialData.color().green(), celestialData.color().blue()));
         PlanetProperties planetProperties = new PlanetProperties(atmosphere);
 
-        ResourceLocation rv = ResourceLocation.fromNamespaceAndPath("dataplanets",planetData.name());
+        ResourceLocation rv = ResourceLocation.fromNamespaceAndPath("dataplanets", celestialData.name());
 
         Celestial celestial = new Celestial(
                 new OrbitingTransformProvider(
-                        ResourceLocation.tryParse("genesis:sun"),
-                        planetData.name().hashCode(),
-                        planetData.distanceFromStar() * 15_000,
-                        planetData.orbitalPeriod() * 4_608_000,
+                        ResourceLocation.tryParse(orbiting),
+                        celestialData.name().hashCode(),
+                        celestialData.distanceFromStar() * 15_000,
+                        celestialData.orbitalPeriod() * 4_608_000,
                         24000
                 ),
 
                 BuiltinCelestialTypes.BODY,
-                planetData.size() * 96,
-                planetData.gravity(),
-                planetData.color().red(),
-                planetData.color().green(),
-                planetData.color().blue(),
+                celestialData.size() * 96,
+                celestialData.gravity(),
+                celestialData.color().red(),
+                celestialData.color().green(),
+                celestialData.color().blue(),
                 planetProperties
         );
 
-        RegistryUtil.registerGenesisFiles(context.server,celestial,rv);
+        RegistryUtil.registerGenesisFiles(context.server,celestial,rv,true);
 
 
     }
@@ -126,6 +140,11 @@ public class SystemCreator {
 
         public String nextPlanetName() {
             return systemName + SystemNameGenerator.ALL_LETTERS.charAt(currentPlanetIndex++);
+        }
+
+        public String currentPlanetName()
+        {
+            return systemName + SystemNameGenerator.ALL_LETTERS.charAt(--currentPlanetIndex);
         }
     }
 }

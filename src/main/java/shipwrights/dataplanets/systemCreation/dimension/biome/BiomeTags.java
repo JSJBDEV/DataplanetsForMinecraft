@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import shipwrights.dataplanets.DataplanetsMod;
-import shipwrights.dataplanets.systemCreation.PlanetData;
+import shipwrights.dataplanets.systemCreation.CelestialData;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 
@@ -16,9 +16,9 @@ public class BiomeTags {
         return TagKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(DataplanetsMod.MOD_ID, string));
     }
 
-    public static void addTagsToBiome(SystemCreator.SystemCreationContext context, ResourceLocation biomeLocation, PlanetData planetData, double variationFactor) {
+    public static void addTagsToBiome(SystemCreator.SystemCreationContext context, ResourceLocation biomeLocation, CelestialData celestialData, double variationFactor) {
 
-        if (context.random.nextDouble() > 0.5 && planetData.atmosphericDensity() > 0.3) {
+        if (context.random.nextDouble() > 0.5 && celestialData.atmosphericDensity() > 0.3) {
             RegistryUtil.addBiomeToTag(context.server, biomeLocation, HAS_WEATHER_STATION);
         }
     }

@@ -28,7 +28,7 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
 import org.jetbrains.annotations.NotNull;
 import shipwrights.dataplanets.DataplanetsMod;
-import shipwrights.dataplanets.systemCreation.PlanetData;
+import shipwrights.dataplanets.systemCreation.CelestialData;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 
@@ -39,35 +39,35 @@ import java.util.Optional;
 
 public class BiomeFeatures {
 
-    public static @NotNull BiomeGenerationSettings getBiomeGenerationSettings(SystemCreator.SystemCreationContext context, PlanetData planetData, double variationFactor, String biomeName) {
+    public static @NotNull BiomeGenerationSettings getBiomeGenerationSettings(SystemCreator.SystemCreationContext context, CelestialData celestialData, double variationFactor, String biomeName) {
         BiomeGenerationSettings.PlainBuilder builder = new BiomeGenerationSettings.PlainBuilder();
 
         RandomSource random = RandomSource.create(biomeName.hashCode());
 
         addCarvers(context, builder);
 
-        if ((planetData.atmosphericDensity() > 0.8 || planetData.weirdness() > 0.8) && planetData.flavour() > 0.3) {
+        if ((celestialData.atmosphericDensity() > 0.8 || celestialData.weirdness() > 0.8) && celestialData.flavour() > 0.3) {
             addDripstone(context, builder);
         }
 
-        if (planetData.atmosphericDensity() > 0.3 && random.nextDouble() > 0.7) {
-            addDeltas(context, builder, biomeName, planetData);
+        if (celestialData.atmosphericDensity() > 0.3 && random.nextDouble() > 0.7) {
+            addDeltas(context, builder, biomeName, celestialData);
         }
 
-        if (planetData.atmosphericDensity() > 0.7) {
-            addLakes(context, builder, biomeName, planetData);
+        if (celestialData.atmosphericDensity() > 0.7) {
+            addLakes(context, builder, biomeName, celestialData);
         }
 
-        if (planetData.temperature() < 0.5 && random.nextDouble() > 0.7) {
+        if (celestialData.temperature() < 0.5 && random.nextDouble() > 0.7) {
             addIceSpikes(context, builder);
-        } else if (planetData.gravity() < 1 && random.nextDouble() > 0.8) {
-            addCrystals(context, builder, biomeName, planetData);
+        } else if (celestialData.gravity() < 1 && random.nextDouble() > 0.8) {
+            addCrystals(context, builder, biomeName, celestialData);
         }
 
         return builder.build();
     }
 
-    private static void addCrystals(SystemCreator.SystemCreationContext context, BiomeGenerationSettings.PlainBuilder builder, String biomeName, PlanetData planetData) {
+    private static void addCrystals(SystemCreator.SystemCreationContext context, BiomeGenerationSettings.PlainBuilder builder, String biomeName, CelestialData celestialData) {
         List<PlacementModifier> modifiers = new ArrayList<>();
         modifiers.add(CountOnEveryLayerPlacement.of(40));
 
@@ -140,7 +140,7 @@ public class BiomeFeatures {
                 .addCarver(GenerationStep.Carving.AIR,cave_extra);
     }
 
-    private static void addDeltas(SystemCreator.SystemCreationContext context, BiomeGenerationSettings.PlainBuilder builder, String biomeName, PlanetData planetData) {
+    private static void addDeltas(SystemCreator.SystemCreationContext context, BiomeGenerationSettings.PlainBuilder builder, String biomeName, CelestialData celestialData) {
         Registry<ConfiguredFeature<?,?>> configuredFeatureRegistry = context.server.registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE);
         Registry<PlacedFeature> placedFeatureRegistry = context.server.registryAccess().registryOrThrow(Registries.PLACED_FEATURE);
 
@@ -150,7 +150,7 @@ public class BiomeFeatures {
         ResourceKey<ConfiguredFeature<?,?>> configuredKey = ResourceKey.create(configuredFeatureRegistry.key(), configuredResourceLocation);
         ResourceKey<PlacedFeature> placedKey = ResourceKey.create(placedFeatureRegistry.key(), placedResourceLocation);
 
-        ConfiguredFeature<?, ?> feature = getConfiguredDelta(context.server, planetData);
+        ConfiguredFeature<?, ?> feature = getConfiguredDelta(context.server, celestialData);
 
         RegistryUtil.registerConfiguredFeature(context.server, configuredResourceLocation, feature);
 
@@ -165,8 +165,8 @@ public class BiomeFeatures {
         placedHolder.ifPresent(ref -> builder.addFeature(0, ref));
     }
 
-    private static @NotNull ConfiguredFeature<?, ?> getConfiguredDelta(MinecraftServer server, PlanetData planetData) {
-        Block primaryFluid = server.registryAccess().registryOrThrow(Registries.BLOCK).get(planetData.primaryFluid());
+    private static @NotNull ConfiguredFeature<?, ?> getConfiguredDelta(MinecraftServer server, CelestialData celestialData) {
+        Block primaryFluid = server.registryAccess().registryOrThrow(Registries.BLOCK).get(celestialData.primaryFluid());
 
         BlockState primaryFluidState = Objects.requireNonNullElse(primaryFluid, Blocks.LAVA).defaultBlockState();
 
@@ -182,7 +182,7 @@ public class BiomeFeatures {
         return new ConfiguredFeature<>(Feature.DELTA_FEATURE, configuration);
     }
 
-    private static void addLakes(SystemCreator.SystemCreationContext context, BiomeGenerationSettings.PlainBuilder builder, String biomeName, PlanetData planetData) {
+    private static void addLakes(SystemCreator.SystemCreationContext context, BiomeGenerationSettings.PlainBuilder builder, String biomeName, CelestialData celestialData) {
         Registry<ConfiguredFeature<?,?>> configuredFeatureRegistry = context.server.registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE);
         Registry<PlacedFeature> placedFeatureRegistry = context.server.registryAccess().registryOrThrow(Registries.PLACED_FEATURE);
 
@@ -192,7 +192,7 @@ public class BiomeFeatures {
         ResourceKey<ConfiguredFeature<?,?>> configuredKey = ResourceKey.create(configuredFeatureRegistry.key(), configuredResourceLocation);
         ResourceKey<PlacedFeature> placedKey = ResourceKey.create(placedFeatureRegistry.key(), placedResourceLocation);
 
-        ConfiguredFeature<?, ?> feature = getConfiguredLake(context.server, planetData);
+        ConfiguredFeature<?, ?> feature = getConfiguredLake(context.server, celestialData);
 
         RegistryUtil.registerConfiguredFeature(context.server, configuredResourceLocation, feature);
 
@@ -207,8 +207,8 @@ public class BiomeFeatures {
         placedHolder.ifPresent(ref -> builder.addFeature(0, ref));
     }
 
-    private static @NotNull ConfiguredFeature<?, ?> getConfiguredLake(MinecraftServer server, PlanetData planetData) {
-        Block primaryFluid = server.registryAccess().registryOrThrow(Registries.BLOCK).get(planetData.primaryFluid());
+    private static @NotNull ConfiguredFeature<?, ?> getConfiguredLake(MinecraftServer server, CelestialData celestialData) {
+        Block primaryFluid = server.registryAccess().registryOrThrow(Registries.BLOCK).get(celestialData.primaryFluid());
 
         BlockState primaryFluidState = Objects.requireNonNullElse(primaryFluid, Blocks.LAVA).defaultBlockState();
 
@@ -217,7 +217,7 @@ public class BiomeFeatures {
         if (primaryFluidState == Blocks.LAVA.defaultBlockState()) {
             solidState = Blocks.MAGMA_BLOCK.defaultBlockState();
         } else {
-            solidState = BuiltInRegistries.BLOCK.get(planetData.primaryBlock()).defaultBlockState();
+            solidState = BuiltInRegistries.BLOCK.get(celestialData.primaryBlock()).defaultBlockState();
         }
 
         LakeFeature.Configuration configuration = new LakeFeature.Configuration(BlockStateProvider.simple(primaryFluidState), BlockStateProvider.simple(solidState));

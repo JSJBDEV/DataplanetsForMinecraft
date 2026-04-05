@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
@@ -22,10 +21,14 @@ import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import net.minecraft.world.level.storage.LevelResource;
+import shipwrights.dataplanets.DataplanetsConfig;
 import shipwrights.dataplanets.DPPackets;
 import shipwrights.dataplanets.DataplanetsMod;
 import shipwrights.dataplanets.PlanetLookup;
 import shipwrights.dataplanets.mixin.MinecraftServerAccessor;
+import shipwrights.dataplanets.systemCreation.CelestialSource;
+import shipwrights.dataplanets.systemCreation.StarData;
+import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.genesis.GenesisMod;
 import shipwrights.genesis.space.Celestial;
 
@@ -120,24 +123,22 @@ public class RegistryUtil {
         writeToDatapack(server, resourceLocation, "worldgen/noise_settings", NoiseGeneratorSettings.DIRECT_CODEC, noiseGeneratorSettings);
     }
 
-    public static void registerGenesisFiles(MinecraftServer server, Celestial celestial, ResourceLocation celestialRL)
+    public static void registerGenesisFiles(MinecraftServer server, Celestial celestial, ResourceLocation celestialRL,boolean sendTextures)
     {
+       registerThing(server, GenesisMod.CELESTIALS_KEY,ResourceKey.create(GenesisMod.CELESTIALS_KEY,celestialRL),celestial);
+       writeToDatapack(server,celestialRL,"genesis/celestials",Celestial.CODEC,celestial);
+       if(sendTextures) sendTexturesToClient(celestialRL);
+    }
 
+    public static void sendTexturesToClient(ResourceLocation celestialRL)
+    {
         CompoundTag tag = new CompoundTag();
         tag.putString("name",celestialRL.getPath());
+
         tag.put("state", NbtUtils.writeBlockState(BuiltInRegistries.BLOCK.get(PlanetLookup.get(celestialRL).primaryBlock()).defaultBlockState()));
 
         PlanetTexturerPacket packet = new PlanetTexturerPacket(tag);
         DPPackets.sendToAll(DPPackets.INSTANCE,packet);
-
-       registerThing(server, GenesisMod.CELESTIALS_KEY,ResourceKey.create(GenesisMod.CELESTIALS_KEY,celestialRL),celestial);
-
-       writeToDatapack(server,celestialRL,"genesis/celestials",Celestial.CODEC,celestial);
-       //writeToDatapack(server,celestialRL,"system_config/planet_properties", PlanetProperties.CODEC,(PlanetProperties) celestial.properties());
-
-
-
-
     }
 
     @SuppressWarnings("deprecation")
@@ -175,6 +176,47 @@ public class RegistryUtil {
             if (!Files.exists(dataplanetsFolder)) {
                 Files.createDirectories(dataplanetsFolder);
                 newFolderCreated = true;
+
+                if(DataplanetsConfig.getMainSystemPlanets()>0)
+                {
+                    SystemCreator creator = new SystemCreator();
+                    SystemCreator.SystemCreationContext context = new SystemCreator.SystemCreationContext(server, true, ServerPhase.running);
+                    for (int i = 0; i < DataplanetsConfig.getMainSystemPlanets(); i++) {
+                        CelestialSource source = CelestialSource.createRandomPlanet(context.nextPlanetName(), context.random);
+                        creator.createBody(source, context);
+                        PlanetLookup.store(context.server, source);
+
+                        for (int j = 0; j < context.random.nextInt(DataplanetsConfig.getMainSystemPlanetMoonsMax()); j++) {
+                            CelestialSource moonSource = CelestialSource.createRandomMoon(context.currentPlanetName()+"_"+j,context.random);
+                            creator.createBody(moonSource,context,"dataplanets:"+source.name());
+                            PlanetLookup.store(context.server, moonSource);
+                        }
+
+                    }
+                }
+
+                if(DataplanetsConfig.getTotalAdditionalSystems()>0)
+                {
+                    for (int i = 0; i < DataplanetsConfig.getTotalAdditionalSystems(); i++) {
+                        SystemCreator creator = new SystemCreator();
+                        SystemCreator.SystemCreationContext context = new SystemCreator.SystemCreationContext(server, true, ServerPhase.running);
+                        SystemCreator.registerStaticToGenesis(StarData.createRandom(context),context);
+
+                        for (int j = 0; j < context.random.nextInt(DataplanetsConfig.getMaxPlanetsInAdditionalSystems()); j++) {
+                            CelestialSource source = CelestialSource.createRandomPlanet(context.nextPlanetName(), context.random);
+                            creator.createBody(source, context,"dataplanets:"+context.systemName);
+                            PlanetLookup.store(context.server, source);
+
+                            for (int k = 0; k < context.random.nextInt(DataplanetsConfig.getMaxMoonsForPlanetsInAdditionalSystems()); k++) {
+                                CelestialSource moonSource = CelestialSource.createRandomMoon(context.currentPlanetName()+"_"+k,context.random);
+                                creator.createBody(moonSource,context,"dataplanets:"+source.name());
+                                PlanetLookup.store(context.server, moonSource);
+                            }
+                        }
+
+                    }
+                }
+
             }
 
             Path mcMetaPath = dataplanetsFolder.resolve("pack.mcmeta");

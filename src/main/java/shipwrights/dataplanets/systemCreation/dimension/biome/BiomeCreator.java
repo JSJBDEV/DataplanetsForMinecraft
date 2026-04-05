@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.*;
-import shipwrights.dataplanets.systemCreation.PlanetData;
+import shipwrights.dataplanets.systemCreation.CelestialData;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 
@@ -18,7 +18,7 @@ import static shipwrights.dataplanets.DataplanetsMod.MOD_ID;
 
 public class BiomeCreator {
 
-    public List<Pair<Climate.ParameterPoint, Holder<Biome>>> createAndRegisterBiomes(SystemCreator.SystemCreationContext context, PlanetData planetData) {
+    public List<Pair<Climate.ParameterPoint, Holder<Biome>>> createAndRegisterBiomes(SystemCreator.SystemCreationContext context, CelestialData celestialData) {
         int biomeCount = 3 + context.random.nextInt(4);
         List<Pair<Climate.ParameterPoint, Holder<Biome>>> biomeList = new ArrayList<>();
 
@@ -26,18 +26,18 @@ public class BiomeCreator {
             double variationFactor = (double) i / biomeCount;
             float biomeHeight = 0.0f;
 
-            String biomeName = planetData.name() + "_biome_" + i;
+            String biomeName = celestialData.name() + "_biome_" + i;
 
-            Biome biome = BiomeCreator.createBiome(context.random, planetData, variationFactor, context, biomeName);
+            Biome biome = BiomeCreator.createBiome(context.random, celestialData, variationFactor, context, biomeName);
 
             ResourceLocation biomeLocation = ResourceLocation.fromNamespaceAndPath(MOD_ID, biomeName);
             ResourceKey<Biome> biomeKey = ResourceKey.create(Registries.BIOME, biomeLocation);
             RegistryUtil.registerBiome(context.server, biomeLocation, biome);
 
-            BiomeTags.addTagsToBiome(context, biomeLocation, planetData, variationFactor);
+            BiomeTags.addTagsToBiome(context, biomeLocation, celestialData, variationFactor);
 
             // Create climate parameters for this biome based on variation
-            Climate.ParameterPoint climateParams = createClimateParameters(planetData, variationFactor, biomeHeight);
+            Climate.ParameterPoint climateParams = createClimateParameters(celestialData, variationFactor, biomeHeight);
 
             // Create holder for the biome
             Holder<Biome> biomeHolder = context.server.registryAccess()
@@ -53,19 +53,19 @@ public class BiomeCreator {
     /**
      * Create climate parameters for a biome based on planet data and variation factor
      */
-    private Climate.ParameterPoint createClimateParameters(PlanetData planetData, double variationFactor, float biomeHeight) {
+    private Climate.ParameterPoint createClimateParameters(CelestialData celestialData, double variationFactor, float biomeHeight) {
         // IMPORTANT: The noise router in TerrainGenCreator multiplies noise (-1 to +1) by planet parameters
         // So if planet.temperature() = 1.0, actual temperature noise ranges from -1.0 to +1.0
         // We need to distribute biomes across the ACTUAL noise range, not around the planet parameter
 
         // Calculate the actual noise ranges produced by TerrainGenCreator
-        double tempMultiplier = clampClimateParameter(planetData.temperature());
-        double humidityMultiplier = clampClimateParameter(planetData.atmosphericDensity());
-        double erosionMultiplier = clampClimateParameter(planetData.weirdness() * 0.8);
-        double ridgeMultiplier = clampClimateParameter(planetData.terrainRoughness() * 0.8);
+        double tempMultiplier = clampClimateParameter(celestialData.temperature());
+        double humidityMultiplier = clampClimateParameter(celestialData.atmosphericDensity());
+        double erosionMultiplier = clampClimateParameter(celestialData.weirdness() * 0.8);
+        double ridgeMultiplier = clampClimateParameter(celestialData.terrainRoughness() * 0.8);
 
         // Continentalness is calculated differently - it's based on planet.size() * 0.2 * noise
-        double continentalnessMultiplier = planetData.size() * 0.2;
+        double continentalnessMultiplier = celestialData.size() * 0.2;
 
         // Each biome should occupy a slice of the expected noise range
         // Distribute biomes evenly across [-multiplier, +multiplier]
@@ -120,29 +120,29 @@ public class BiomeCreator {
         return (float) Math.max(-2.0, Math.min(2.0, value));
     }
 
-    private static Biome createBiome(RandomSource random, PlanetData planetData, double variationFactor, SystemCreator.SystemCreationContext context, String biomeName) {
+    private static Biome createBiome(RandomSource random, CelestialData celestialData, double variationFactor, SystemCreator.SystemCreationContext context, String biomeName) {
         // Vary temperature based on planet base temperature and variation
-        float temperature = (float) (planetData.temperature() + (variationFactor - 0.5) * 0.4);
+        float temperature = (float) (celestialData.temperature() + (variationFactor - 0.5) * 0.4);
 
         // Vary downfall (precipitation) based on atmospheric density and sea level
-        float downfall = (float) ((planetData.atmosphericDensity() + planetData.seaLevel()) / 2.0);
+        float downfall = (float) ((celestialData.atmosphericDensity() + celestialData.seaLevel()) / 2.0);
 
         // Determine if this biome has precipitation
         boolean hasPrecipitation = downfall > 0.3 && temperature > 0.15;
 
         // Create special effects based on planet properties
         BiomeSpecialEffects.Builder effectsBuilder = new BiomeSpecialEffects.Builder()
-                .fogColor(deriveFogColor(planetData, variationFactor))
-                .waterColor(deriveWaterColor(planetData, variationFactor))
-                .waterFogColor(deriveWaterFogColor(planetData, variationFactor))
-                .skyColor(deriveSkyColor(planetData, variationFactor))
-                .grassColorOverride(deriveGrassColor(planetData, variationFactor))
-                .foliageColorOverride(deriveFoliageColor(planetData, variationFactor));
+                .fogColor(deriveFogColor(celestialData, variationFactor))
+                .waterColor(deriveWaterColor(celestialData, variationFactor))
+                .waterFogColor(deriveWaterFogColor(celestialData, variationFactor))
+                .skyColor(deriveSkyColor(celestialData, variationFactor))
+                .grassColorOverride(deriveGrassColor(celestialData, variationFactor))
+                .foliageColorOverride(deriveFoliageColor(celestialData, variationFactor));
 
         // Create mob spawn settings (empty for now - no mobs on generated planets)
         MobSpawnSettings mobSpawnSettings = new MobSpawnSettings.Builder().build();
 
-        BiomeGenerationSettings generationSettings = BiomeFeatures.getBiomeGenerationSettings(context, planetData, variationFactor, biomeName);
+        BiomeGenerationSettings generationSettings = BiomeFeatures.getBiomeGenerationSettings(context, celestialData, variationFactor, biomeName);
 
         // Build and return the biome
         return new Biome.BiomeBuilder()
@@ -155,10 +155,10 @@ public class BiomeCreator {
                 .build();
     }
 
-    private static int deriveFogColor(PlanetData planetData, double variationFactor) {
+    private static int deriveFogColor(CelestialData celestialData, double variationFactor) {
         // Derive fog color based on temperature, atmospheric density, and variation
-        double temp = planetData.temperature();
-        double atmosphere = planetData.atmosphericDensity();
+        double temp = celestialData.temperature();
+        double atmosphere = celestialData.atmosphericDensity();
 
         // Vary the temperature slightly for this biome
         double biomeTemp = temp + (variationFactor - 0.5) * 0.3;
@@ -193,12 +193,12 @@ public class BiomeCreator {
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    private static int deriveWaterColor(PlanetData planetData, double variationFactor) {
+    private static int deriveWaterColor(CelestialData celestialData, double variationFactor) {
         // Base water color on primary fluid and temperature
-        if (planetData.temperature() > 1.8) {
+        if (celestialData.temperature() > 1.8) {
             // Lava planets - orange/red water
             return 0xFF6600 + (int)(variationFactor * 0x004400);
-        } else if (planetData.temperature() < 0.4) {
+        } else if (celestialData.temperature() < 0.4) {
             // Ice planets - light blue/white water
             return 0xAADDFF - (int)(variationFactor * 0x002200);
         } else {
@@ -207,15 +207,15 @@ public class BiomeCreator {
         }
     }
 
-    private static int deriveWaterFogColor(PlanetData planetData, double variationFactor) {
+    private static int deriveWaterFogColor(CelestialData celestialData, double variationFactor) {
         // Water fog is generally darker than water color
-        int waterColor = deriveWaterColor(planetData, variationFactor);
+        int waterColor = deriveWaterColor(celestialData, variationFactor);
         return (waterColor & 0xFEFEFE) >> 1; // Darken by dividing RGB components by 2
     }
 
-    private static int deriveSkyColor(PlanetData planetData, double variationFactor) {
-        double temp = planetData.temperature();
-        double atmosphere = planetData.atmosphericDensity();
+    private static int deriveSkyColor(CelestialData celestialData, double variationFactor) {
+        double temp = celestialData.temperature();
+        double atmosphere = celestialData.atmosphericDensity();
 
         if (atmosphere < 0.3) {
             // Thin atmosphere - dark/black sky
@@ -235,9 +235,9 @@ public class BiomeCreator {
         }
     }
 
-    private static int deriveGrassColor(PlanetData planetData, double variationFactor) {
-        double temp = planetData.temperature();
-        double weirdness = planetData.weirdness();
+    private static int deriveGrassColor(CelestialData celestialData, double variationFactor) {
+        double temp = celestialData.temperature();
+        double weirdness = celestialData.weirdness();
 
         if (weirdness > 1.5) {
             // Weird planets - purple/pink vegetation
@@ -254,9 +254,9 @@ public class BiomeCreator {
         }
     }
 
-    private static int deriveFoliageColor(PlanetData planetData, double variationFactor) {
+    private static int deriveFoliageColor(CelestialData celestialData, double variationFactor) {
         // Foliage is generally similar to grass but slightly different
-        int grassColor = deriveGrassColor(planetData, variationFactor);
+        int grassColor = deriveGrassColor(celestialData, variationFactor);
         // Shift the color slightly towards darker/more saturated
         return (grassColor & 0xFEFEFE) - 0x101010;
     }

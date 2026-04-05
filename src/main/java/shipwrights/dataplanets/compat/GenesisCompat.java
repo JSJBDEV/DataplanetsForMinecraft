@@ -2,12 +2,13 @@ package shipwrights.dataplanets.compat;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import shipwrights.dataplanets.systemCreation.CelestialData;
 
 import java.util.List;
 
 public class GenesisCompat implements Compat{
     @Override
-    public void addPlanetsToSpace(MinecraftServer server, List<shipwrights.dataplanets.systemCreation.PlanetData> planets) {
+    public void addPlanetsToSpace(MinecraftServer server, List<CelestialData> planets) {
 
     }
 

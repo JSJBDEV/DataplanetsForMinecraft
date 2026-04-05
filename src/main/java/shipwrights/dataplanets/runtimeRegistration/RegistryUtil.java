@@ -3,13 +3,17 @@ package shipwrights.dataplanets.runtimeRegistration;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.core.*;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
@@ -18,12 +22,12 @@ import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import net.minecraft.world.level.levelgen.synth.NormalNoise;
 import net.minecraft.world.level.storage.LevelResource;
+import shipwrights.dataplanets.DPPackets;
 import shipwrights.dataplanets.DataplanetsMod;
+import shipwrights.dataplanets.PlanetLookup;
 import shipwrights.dataplanets.mixin.MinecraftServerAccessor;
-import shipwrights.dataplanets.mixin.SpaceRegistryInvoker;
 import shipwrights.genesis.GenesisMod;
 import shipwrights.genesis.space.Celestial;
-import shipwrights.genesis.space.registry.SpaceRegistry;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -114,6 +118,26 @@ public class RegistryUtil {
     ) {
         registerThing(server, Registries.NOISE_SETTINGS, ResourceKey.create(Registries.NOISE_SETTINGS, resourceLocation), noiseGeneratorSettings);
         writeToDatapack(server, resourceLocation, "worldgen/noise_settings", NoiseGeneratorSettings.DIRECT_CODEC, noiseGeneratorSettings);
+    }
+
+    public static void registerGenesisFiles(MinecraftServer server, Celestial celestial, ResourceLocation celestialRL)
+    {
+
+        CompoundTag tag = new CompoundTag();
+        tag.putString("name",celestialRL.getPath());
+        tag.put("state", NbtUtils.writeBlockState(BuiltInRegistries.BLOCK.get(PlanetLookup.get(celestialRL).primaryBlock()).defaultBlockState()));
+
+        PlanetTexturerPacket packet = new PlanetTexturerPacket(tag);
+        DPPackets.sendToAll(DPPackets.INSTANCE,packet);
+
+       registerThing(server, GenesisMod.CELESTIALS_KEY,ResourceKey.create(GenesisMod.CELESTIALS_KEY,celestialRL),celestial);
+
+       writeToDatapack(server,celestialRL,"genesis/celestials",Celestial.CODEC,celestial);
+       //writeToDatapack(server,celestialRL,"system_config/planet_properties", PlanetProperties.CODEC,(PlanetProperties) celestial.properties());
+
+
+
+
     }
 
     @SuppressWarnings("deprecation")

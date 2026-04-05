@@ -11,7 +11,6 @@ import shipwrights.dataplanets.PlanetLookup;
 import shipwrights.dataplanets.systemCreation.PlanetSource;
 import shipwrights.dataplanets.systemCreation.SystemCreator;
 import shipwrights.dataplanets.runtimeRegistration.ServerPhase;
-import shipwrights.genesis.space.registry.SpaceRegistry;
 
 public class TestPlanetCreationItem extends Item {
     public TestPlanetCreationItem(Properties arg) {

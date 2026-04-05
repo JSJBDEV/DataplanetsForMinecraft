@@ -57,12 +57,12 @@ public class DataplanetsMod {
     @SubscribeEvent
     public static void playerJoins(PlayerEvent.PlayerLoggedInEvent event) {
 
-        GenesisMod.SPACE_REGISTRY.getAll().forEach(a->
+        GenesisMod.getCelestialRegistry(event.getEntity().level()).keySet().forEach(a->
         {
-            if(a.ID().getNamespace().equals("dataplanets"))
+            if(a.getNamespace().equals("dataplanets"))
             {
                 CompoundTag tag = new CompoundTag();
-                tag.putString("name",a.ID().getPath());
+                tag.putString("name",a.getPath());
                 tag.put("state", NbtUtils.writeBlockState(Blocks.STONE.defaultBlockState()));
 
                 PlanetTexturerPacket packet = new PlanetTexturerPacket(tag);

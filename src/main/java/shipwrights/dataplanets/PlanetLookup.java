@@ -4,11 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -21,15 +18,7 @@ import shipwrights.dataplanets.systemCreation.PlanetData;
 import shipwrights.dataplanets.systemCreation.PlanetSource;
 import shipwrights.dataplanets.util.Color;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
-import shipwrights.genesis.GenesisMod;
-import shipwrights.genesis.space.Celestial;
-import shipwrights.genesis.space.planet_properties.Atmosphere;
-import shipwrights.genesis.space.planet_properties.PlanetColorPalette;
-import shipwrights.genesis.space.planet_properties.PlanetProperties;
-import shipwrights.genesis.space.planet_properties.PlanetPropertiesModel;
-import shipwrights.genesis.space.registry.SystemConfigModel;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

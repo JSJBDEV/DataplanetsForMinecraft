@@ -2,11 +2,9 @@ package shipwrights.dataplanets.systemCreation;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Climate;
@@ -17,7 +15,6 @@ import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import shipwrights.dataplanets.PlanetLookup;
 import shipwrights.dataplanets.compat.Compat;
-import shipwrights.dataplanets.mixin.SpaceRegistryInvoker;
 import shipwrights.dataplanets.systemCreation.naming.SystemNameGenerator;
 import shipwrights.dataplanets.systemCreation.dimension.biome.BiomeCreator;
 import shipwrights.dataplanets.systemCreation.dimension.DimensionTypeCreator;
@@ -26,15 +23,11 @@ import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
 import shipwrights.dataplanets.runtimeRegistration.ServerPhase;
 import shipwrights.genesis.GenesisMod;
 import shipwrights.genesis.space.Celestial;
-import shipwrights.genesis.space.planet_properties.Atmosphere;
-import shipwrights.genesis.space.planet_properties.PlanetColorPalette;
-import shipwrights.genesis.space.planet_properties.PlanetProperties;
-import shipwrights.genesis.space.planet_properties.PlanetPropertiesModel;
-import shipwrights.genesis.space.registry.SystemConfigModel;
-import shipwrights.genesis.space.transformProvider.CelestialTransformProvider;
+import shipwrights.genesis.space.properties.Atmosphere;
+import shipwrights.genesis.space.properties.PlanetColorPalette;
+import shipwrights.genesis.space.properties.PlanetProperties;
 import shipwrights.genesis.space.transformProvider.OrbitingTransformProvider;
 import shipwrights.genesis.space.type.BuiltinCelestialTypes;
-import shipwrights.genesis.space.type.CelestialType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +84,11 @@ public class SystemCreator {
 
     public static void registerPlanetToGenesis(PlanetData planetData,SystemCreationContext context)
     {
+        Atmosphere atmosphere = new Atmosphere(planetData.atmosphericDensity(),planetData.temperature(),false,false,new PlanetColorPalette.RGB(planetData.color().red(),planetData.color().green(),planetData.color().blue()));
+        PlanetProperties planetProperties = new PlanetProperties(atmosphere);
+
         ResourceLocation rv = ResourceLocation.fromNamespaceAndPath("dataplanets",planetData.name());
+
         Celestial celestial = new Celestial(
                 new OrbitingTransformProvider(
                         ResourceLocation.tryParse("genesis:sun"),
@@ -100,27 +97,18 @@ public class SystemCreator {
                         planetData.orbitalPeriod() * 4_608_000,
                         24000
                 ),
-                rv,
+
                 BuiltinCelestialTypes.BODY,
                 planetData.size() * 96,
                 planetData.gravity(),
                 planetData.color().red(),
                 planetData.color().green(),
-                planetData.color().blue()
+                planetData.color().blue(),
+                planetProperties
         );
 
-        SpaceRegistryInvoker spaceRegistryInvoker = (SpaceRegistryInvoker) GenesisMod.SPACE_REGISTRY;
-        spaceRegistryInvoker.addBody(ResourceLocation.fromNamespaceAndPath("dataplanets",planetData.name()),celestial);
+        RegistryUtil.registerGenesisFiles(context.server,celestial,rv);
 
-
-        SystemConfigModel configModel = new SystemConfigModel(List.of(celestial));
-
-        RegistryUtil.writeToDatapack(context.server,rv,"system_config", SystemConfigModel.CODEC,configModel);
-
-        Atmosphere atmosphere = new Atmosphere(planetData.atmosphericDensity(),planetData.temperature(),false,false,new PlanetColorPalette.RGB(planetData.color().red(),planetData.color().green(),planetData.color().blue()));
-        PlanetProperties planetProperties = new PlanetProperties(rv,atmosphere);
-        PlanetPropertiesModel propertiesModel = new PlanetPropertiesModel(List.of(planetProperties));
-        RegistryUtil.writeToDatapack(context.server,rv,"system_config/planet_properties",PlanetPropertiesModel.CODEC,propertiesModel);
 
     }
 

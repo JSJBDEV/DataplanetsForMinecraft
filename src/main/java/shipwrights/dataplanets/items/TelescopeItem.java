@@ -1,5 +1,6 @@
 package shipwrights.dataplanets.items;
 
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -12,6 +13,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import shipwrights.genesis.GenesisMod;
+import shipwrights.genesis.space.Celestial;
 import shipwrights.genesis.space.SpaceLevel;
 
 public class TelescopeItem extends Item {
@@ -35,10 +37,11 @@ public class TelescopeItem extends Item {
 
         Vector3d origin = new Vector3d(arg2.position().x,arg2.position().y,arg2.position().z);
         Vector3d direction = new Vector3d(v3d.x,v3d.y,v3d.z);
-        var result = SpaceLevel.celestialRaycast(GenesisMod.getTicks(arg), 0f, origin,direction, celestialType -> true);
+        Registry<Celestial> celestialRegistry = GenesisMod.getCelestialRegistry(arg);
+        var result = SpaceLevel.celestialRaycast(celestialRegistry,GenesisMod.getTicks(arg), 0f, origin,direction,a->true);
         if (result != null) {
-            arg2.sendSystemMessage(Component.literal("BODY FOUND: " + result.getFirst().ID()));
-            Vector3dc pos = result.getFirst().getPosition(GenesisMod.getTicks(arg));
+            arg2.sendSystemMessage(Component.literal("BODY FOUND: " +celestialRegistry.getKey(result.getFirst()).getPath()));
+            Vector3dc pos = result.getFirst().getPosition(GenesisMod.getTicks(arg),celestialRegistry);
             arg2.sendSystemMessage(Component.literal("Position: " + (int) pos.x() + " " + (int) pos.y() + " " + (int) pos.z()));
         }
     }

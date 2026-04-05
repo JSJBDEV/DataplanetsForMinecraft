@@ -4,8 +4,7 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "mixins.dataplanets.refmap.json",
   "mixins": [
-    "MinecraftServerAccessor",
-    "SpaceRegistryInvoker"
+    "MinecraftServerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -11,7 +11,6 @@ public class DPItems {
     }
 
     public static ItemEntry<TestPlanetCreationItem> CREATE_PLANET_ITEM = DataplanetsMod.REGISTRATE.item("test_planet_creator",TestPlanetCreationItem::new).properties((a)->a).lang("Test Planet Creator").register();
-    public static ItemEntry<FindPlanetItem> FIND_PLANET_ITEM = DataplanetsMod.REGISTRATE.item("find_planet_item",FindPlanetItem::new).properties((a)->a).lang("Find Planet Item").register();
     public static ItemEntry<TelescopeItem> TELESCOPE_ITEM = DataplanetsMod.REGISTRATE.item("portable_telescope",TelescopeItem::new).properties((a)->a).lang("Portable Telescope").register();
 
     /// do not delete

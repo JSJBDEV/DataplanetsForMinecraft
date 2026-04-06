@@ -35,7 +35,8 @@ public class DataplanetsMod {
     public static final ResourceLocation MUTABLE_DATA = ResourceLocation.fromNamespaceAndPath("dataplanets","mutable_data");
 
     public DataplanetsMod(FMLJavaModLoadingContext context) {
-        context.registerConfig(ModConfig.Type.COMMON, DataplanetsConfig.CONFIG_SPEC);
+        context.registerConfig(ModConfig.Type.SERVER, DataplanetsConfig.CONFIG_SPEC);
+        context.registerConfig(ModConfig.Type.CLIENT, DataplanetsClientConfig.CONFIG_SPEC, "dataplanets/dataplanets-client.toml");
         DPItems.init();
         DPBlocks.init();
         DPPackets.init();

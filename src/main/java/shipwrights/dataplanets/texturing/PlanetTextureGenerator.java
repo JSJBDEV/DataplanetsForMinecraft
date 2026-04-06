@@ -7,12 +7,17 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 
+import net.minecraftforge.fml.loading.FMLPaths;
+import shipwrights.dataplanets.DataplanetsClientConfig;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -71,6 +76,13 @@ public class PlanetTextureGenerator {
         ImageIO.write(strip,"png",os);
         InputStream is = new ByteArrayInputStream(os.toByteArray());
         Minecraft.getInstance().getTextureManager().register(ResourceLocation.fromNamespaceAndPath("genesis","textures/planets/dataplanets/"+name+".png"),new DynamicTexture(NativeImage.read(is)));
+
+        // export textures if configured to do so
+        if (DataplanetsClientConfig.shouldExportTextures()) {
+            Path exportDir = FMLPaths.CONFIGDIR.get().resolve("dataplanets").resolve("textures");
+            Files.createDirectories(exportDir);
+            ImageIO.write(strip, "png", exportDir.resolve(name + ".png").toFile());
+        }
     }
 
     /** Creates a 3×2 horizontal strip of all six faces for easy inspection. */

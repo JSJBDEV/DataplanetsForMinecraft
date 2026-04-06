@@ -1,11 +1,8 @@
 package shipwrights.dataplanets;
 
 import com.tterrag.registrate.Registrate;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
@@ -17,9 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import shipwrights.dataplanets.registry.DPBlocks;
 import shipwrights.dataplanets.registry.DPItems;
-import shipwrights.dataplanets.runtimeRegistration.PlanetTexturerPacket;
-import shipwrights.dataplanets.systemCreation.naming.FantasySystemNameGenerator;
 import shipwrights.dataplanets.runtimeRegistration.RegistryUtil;
+import shipwrights.dataplanets.systemCreation.naming.FantasySystemNameGenerator;
 import shipwrights.genesis.GenesisMod;
 
 @Mod.EventBusSubscriber
@@ -35,7 +31,7 @@ public class DataplanetsMod {
     public static final ResourceLocation MUTABLE_DATA = ResourceLocation.fromNamespaceAndPath("dataplanets","mutable_data");
 
     public DataplanetsMod(FMLJavaModLoadingContext context) {
-        context.registerConfig(ModConfig.Type.SERVER, DataplanetsConfig.CONFIG_SPEC);
+        context.registerConfig(ModConfig.Type.COMMON, DataplanetsConfig.CONFIG_SPEC, "dataplanets/dataplanets-common.toml");
         context.registerConfig(ModConfig.Type.CLIENT, DataplanetsClientConfig.CONFIG_SPEC, "dataplanets/dataplanets-client.toml");
         DPItems.init();
         DPBlocks.init();
